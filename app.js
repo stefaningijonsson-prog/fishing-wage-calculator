@@ -62,7 +62,7 @@ const TAB_CONFIGS = {
   longline: {
     label: "Longline",
     locked: false,
-    splitPercent: 29.4, // 191-241 brl bracket, 12 crew, from the 2024 SFS/SSÍ agreement
+    splitPercent: 19.65, // day boats (landróðrar), 241+ brl, 12 crew - 2024 SFS/SSÍ agreement (post oil-deduction reform)
     crew: [
       { role: "Skipper", shares: 2, count: 1 },
       { role: "Chief engineer", shares: 1.5, count: 1 },
@@ -76,20 +76,21 @@ const TAB_CONFIGS = {
   trawl: {
     label: "Trawl",
     locked: false,
-    splitPercent: 27.9, // 29-42m bottom trawlers, 11-14 crew, from the 2024 SFS/SSÍ agreement
+    splitPercent: 20.41, // 241-500 rúml bottom trawlers, 11 crew - 2024 SFS/SSÍ agreement (post oil-deduction reform)
     crew: [
       { role: "Skipper", shares: 2, count: 1 },
       { role: "Chief engineer", shares: 1.5, count: 1 },
       { role: "First engineer", shares: 1.25, count: 1 },
       { role: "Net operator", shares: 1.125, count: 1 },
       { role: "Cook", shares: 1.25, count: 1 },
-      { role: "Deckhand", shares: 1.2, count: 9 },
+      { role: "Deckhand", shares: 1.2, count: 6 },
     ],
   },
   pelagic: {
     label: "Pelagic (flotvarpa)",
     locked: false,
-    splitPercent: 29.0, // 241-500 rúml herring/capelin trawlers, 14 crew, from the 2024 SFS/SSÍ agreement
+    unconfirmed: "Not found in the 2024 SFS/SSÍ net/longline/trawl/dragnet agreement - pelagic vessels run under a separate agreement that hasn't been checked yet. This percentage is from an older source and may be out of date, same as net/longline/trawl were before this was caught.",
+    splitPercent: 29.0, // 241-500 rúml herring/capelin trawlers, 14 crew, from the older ssi.is bracket table
     crew: [
       { role: "Skipper", shares: 2, count: 1 },
       { role: "Chief engineer", shares: 1.5, count: 1 },
@@ -151,6 +152,14 @@ function saveSettlements(tabId, list) { localStorage.setItem(storageKey(tabId, "
 // ---------- Build the full UI for one tab ----------
 function buildTab(state) {
   const root = document.createElement("div");
+
+  if (state.config.unconfirmed) {
+    const warning = document.createElement("p");
+    warning.className = "hint";
+    warning.style.color = "#c0392b";
+    warning.textContent = state.config.unconfirmed;
+    root.appendChild(warning);
+  }
 
   // Crew & shares
   const crewSection = document.createElement("section");

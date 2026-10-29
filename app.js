@@ -211,64 +211,25 @@ function buildTab(state) {
   // Crew & shares
   const crewSection = document.createElement("section");
   crewSection.innerHTML = `<h2>Hlutur</h2>
-    <p class="hint">${state.config.locked
-      ? 'Fast samkvæmt samningsþrepum. "Hlutur" er margfeldi af einum hásetahlut. "Fjöldi" er hversu margir skipverjar eru í hverju þrepi.'
-      : 'Upphafsgildi úr kjarasamningnum fyrir þessa veiðigrein — breytu hlut og fjölda til að passa við þína áhöfn.'}</p>
-    <table><thead><tr><th>Þrep</th><th>Hlutur</th><th>Fjöldi</th><th></th></tr></thead><tbody class="crew-body"></tbody></table>`;
+    <p class="hint">Hlutaþrepin eru föst samkvæmt kjarasamningnum. "Hlutur" er margfeldi af einum hásetahlut og er ekki breytanlegt. Settu bara inn hversu margir skipverjar eru í hverju þrepi undir "Fjöldi".</p>
+    <table><thead><tr><th>Þrep</th><th>Hlutur</th><th>Fjöldi</th></tr></thead><tbody class="crew-body"></tbody></table>`;
   const crewBody = crewSection.querySelector(".crew-body");
-  if (!state.config.locked) {
-    const addCrewBtn = document.createElement("button");
-    addCrewBtn.textContent = "+ Bæta við þrepi";
-    addCrewBtn.className = "secondary";
-    addCrewBtn.addEventListener("click", () => {
-      state.crew.push({ id: nextId(), role: "1 hlutur", shares: 1, count: 1 });
-      saveCrew(state);
-      renderCrew();
-    });
-    crewSection.appendChild(addCrewBtn);
-  }
 
   function renderCrew() {
     crewBody.innerHTML = "";
     state.crew.forEach(member => {
       const tr = document.createElement("tr");
 
-      if (state.config.locked) {
-        const roleTd = document.createElement("td"); roleTd.textContent = member.role;
-        const sharesTd = document.createElement("td"); sharesTd.textContent = member.shares;
-        const countTd = document.createElement("td"); countTd.textContent = member.count;
-        tr.append(roleTd, sharesTd, countTd, document.createElement("td"));
-      } else {
-        const roleTd = document.createElement("td");
-        const roleInput = document.createElement("input");
-        roleInput.type = "text"; roleInput.value = member.role;
-        roleInput.addEventListener("input", () => { member.role = roleInput.value; saveCrew(state); });
-        roleTd.appendChild(roleInput);
+      const roleTd = document.createElement("td"); roleTd.textContent = member.role;
+      const sharesTd = document.createElement("td"); sharesTd.textContent = member.shares;
 
-        const sharesTd = document.createElement("td");
-        const sharesInput = document.createElement("input");
-        sharesInput.type = "text"; sharesInput.inputMode = "decimal"; sharesInput.value = member.shares;
-        sharesInput.addEventListener("input", () => { member.shares = parseNum(sharesInput.value); saveCrew(state); });
-        sharesTd.appendChild(sharesInput);
+      const countTd = document.createElement("td");
+      const countInput = document.createElement("input");
+      countInput.type = "text"; countInput.inputMode = "numeric"; countInput.value = member.count;
+      countInput.addEventListener("input", () => { member.count = parseInt(parseNum(countInput.value)) || 0; saveCrew(state); });
+      countTd.appendChild(countInput);
 
-        const countTd = document.createElement("td");
-        const countInput = document.createElement("input");
-        countInput.type = "text"; countInput.inputMode = "numeric"; countInput.value = member.count;
-        countInput.addEventListener("input", () => { member.count = parseInt(parseNum(countInput.value)) || 0; saveCrew(state); });
-        countTd.appendChild(countInput);
-
-        const actionTd = document.createElement("td");
-        const removeBtn = document.createElement("button");
-        removeBtn.textContent = "Fjarlægja"; removeBtn.className = "danger";
-        removeBtn.addEventListener("click", () => {
-          state.crew = state.crew.filter(c => c.id !== member.id);
-          saveCrew(state);
-          renderCrew();
-        });
-        actionTd.appendChild(removeBtn);
-
-        tr.append(roleTd, sharesTd, countTd, actionTd);
-      }
+      tr.append(roleTd, sharesTd, countTd);
       crewBody.appendChild(tr);
     });
   }

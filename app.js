@@ -124,16 +124,26 @@ const TAB_CONFIGS = {
       { role: "1 share", shares: 1, count: 10 },
     ],
   },
-  pelagic: {
-    label: "Pelagic (flotvarpa)",
+  dragnet: {
+    label: "Dragnet",
     locked: false,
-    splitPercent: 19.72, // ch. 7.02, flotvarpa (pelagic trawl), 15 menn
+    // ch. 4.01, by registered length (boats first registered after 1 Jan 2023, or new to dragnet fishing).
+    brackets: {
+      options: [
+        { label: "Undir 15 m", percent: 22.40, men: 4 },
+        { label: "15 - 23,99 m", percent: 22.40, men: "7-8" },
+        { label: "24 - 39,99 m", percent: 22.40, men: "8-9" },
+        { label: "40 m og lengri", percent: 21.98, men: "12-14" },
+      ],
+      defaultIndex: 3,
+    },
+    splitPercent: 21.98, // ch. 4.01, 40m+, 12-14 menn
     crew: [
       { role: "2 shares", shares: 2, count: 1 },
       { role: "1.5 shares", shares: 1.5, count: 1 },
       { role: "1.25 shares", shares: 1.25, count: 2 },
       { role: "1.125 shares", shares: 1.125, count: 0 },
-      { role: "1 share", shares: 1, count: 11 },
+      { role: "1 share", shares: 1, count: 10 },
     ],
   },
 };

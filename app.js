@@ -45,13 +45,14 @@ const PRICE_SNAPSHOT = {
 
 // ---------- Per gear-type tab configuration ----------
 // "net" is locked to this specific boat's agreed numbers. Every other tab is a reasonable
-// starting point pulled from the SSÍ/SFS agreement's mid-range bracket for that gear type —
-// it's editable so a crew on a different tonnage/headcount bracket can match their own contract.
+// starting point pulled straight from the current (chapter 2/5/7, not the legacy viðauki 1
+// brl-based annex) 2024 SFS/SSÍ agreement — editable so a crew on a different bracket can
+// match their own contract. All percentages below are Leið A.
 const TAB_CONFIGS = {
   net: {
     label: "Net",
     locked: true,
-    splitPercent: 19.38,
+    splitPercent: 19.38, // ch. 3.02, 40m+ / 301-500 rúml, 13 menn
     crew: [
       { role: "Skipper", shares: 2, count: 1 },
       { role: "First mate / Chief engineer", shares: 1.5, count: 2 },
@@ -62,7 +63,24 @@ const TAB_CONFIGS = {
   longline: {
     label: "Longline",
     locked: false,
-    splitPercent: 19.65, // day boats (landróðrar), 241+ brl, 12 crew - 2024 SFS/SSÍ agreement (post oil-deduction reform)
+    // ch. 2.05 (landróðrar / day boats) and 2.06 (útilegur / extended trips), by registered length.
+    brackets: {
+      tripTypes: ["Landróðrar (day boats)", "Útilegur (extended trips)"],
+      landrodrar: [
+        { label: "Undir 15 m", percent: 22.07, men: 5 },
+        { label: "15 - 23,99 m", percent: 22.07, men: 7 },
+        { label: "24 m og lengri", percent: 21.11, men: 11 },
+      ],
+      utilegur: [
+        { label: "Undir 15 m", percent: 22.82, men: 6 },
+        { label: "15 - 23,99 m", percent: 22.82, men: 8 },
+        { label: "24 - 39,99 m", percent: 21.98, men: 14 },
+        { label: "40 m og lengri", percent: 21.98, men: 14 },
+      ],
+      defaultTripType: "utilegur",
+      defaultIndex: 3,
+    },
+    splitPercent: 21.98, // útilegur, 40m+, 14 menn
     crew: [
       { role: "Skipper", shares: 2, count: 1 },
       { role: "Chief engineer", shares: 1.5, count: 1 },
@@ -70,33 +88,32 @@ const TAB_CONFIGS = {
       { role: "Second engineer", shares: 1.125, count: 1 },
       { role: "Line operator", shares: 1.25, count: 1 },
       { role: "Cook", shares: 1.25, count: 1 },
-      { role: "Deckhand", shares: 1, count: 6 },
+      { role: "Deckhand", shares: 1, count: 8 },
     ],
   },
   trawl: {
     label: "Trawl",
     locked: false,
-    splitPercent: 20.41, // 241-500 rúml bottom trawlers, 11 crew - 2024 SFS/SSÍ agreement (post oil-deduction reform)
+    splitPercent: 19.31, // ch. 5.11, skuttogarar 40m+, 15 menn
     crew: [
       { role: "Skipper", shares: 2, count: 1 },
       { role: "Chief engineer", shares: 1.5, count: 1 },
       { role: "First engineer", shares: 1.25, count: 1 },
       { role: "Net operator", shares: 1.125, count: 1 },
       { role: "Cook", shares: 1.25, count: 1 },
-      { role: "Deckhand", shares: 1.2, count: 6 },
+      { role: "Deckhand", shares: 1.2, count: 10 },
     ],
   },
   pelagic: {
     label: "Pelagic (flotvarpa)",
     locked: false,
-    unconfirmed: "Not found in the 2024 SFS/SSÍ net/longline/trawl/dragnet agreement - pelagic vessels run under a separate agreement that hasn't been checked yet. This percentage is from an older source and may be out of date, same as net/longline/trawl were before this was caught.",
-    splitPercent: 29.0, // 241-500 rúml herring/capelin trawlers, 14 crew, from the older ssi.is bracket table
+    splitPercent: 19.72, // ch. 7.02, flotvarpa (pelagic trawl), 15 menn
     crew: [
       { role: "Skipper", shares: 2, count: 1 },
       { role: "Chief engineer", shares: 1.5, count: 1 },
       { role: "First engineer", shares: 1.25, count: 1 },
       { role: "Cook", shares: 1.25, count: 1 },
-      { role: "Deckhand", shares: 1, count: 10 },
+      { role: "Deckhand", shares: 1, count: 11 },
     ],
   },
 };
@@ -241,6 +258,55 @@ function buildTab(state) {
   const splitInput = settingsSection.querySelector(".split-input");
   splitInput.value = state.splitPercent;
   splitInput.addEventListener("input", () => { state.splitPercent = parseNum(splitInput.value); saveSplit(state); });
+
+  if (state.config.brackets) {
+    const b = state.config.brackets;
+    const bracketDiv = document.createElement("div");
+    bracketDiv.className = "settings-grid";
+    bracketDiv.innerHTML = `
+      <label>Trip type
+        <select class="trip-type-select"></select>
+      </label>
+      <label>Vessel length
+        <select class="length-select"></select>
+      </label>`;
+    settingsSection.insertBefore(bracketDiv, settingsSection.querySelector(".hint"));
+
+    const tripSelect = bracketDiv.querySelector(".trip-type-select");
+    const lengthSelect = bracketDiv.querySelector(".length-select");
+    const tripKeys = ["landrodrar", "utilegur"];
+
+    b.tripTypes.forEach((label, i) => {
+      const opt = document.createElement("option");
+      opt.value = tripKeys[i];
+      opt.textContent = label;
+      tripSelect.appendChild(opt);
+    });
+
+    function populateLengths(tripKey, selectIndex) {
+      lengthSelect.innerHTML = "";
+      b[tripKey].forEach((bracket, i) => {
+        const opt = document.createElement("option");
+        opt.value = i;
+        opt.textContent = `${bracket.label} (${bracket.men} menn, ${bracket.percent}%)`;
+        lengthSelect.appendChild(opt);
+      });
+      lengthSelect.value = selectIndex;
+    }
+
+    function applyBracket() {
+      const bracket = b[tripSelect.value][lengthSelect.value];
+      state.splitPercent = bracket.percent;
+      splitInput.value = bracket.percent;
+      saveSplit(state);
+    }
+
+    tripSelect.value = b.defaultTripType;
+    populateLengths(b.defaultTripType, b.defaultIndex);
+
+    tripSelect.addEventListener("change", () => { populateLengths(tripSelect.value, 0); applyBracket(); });
+    lengthSelect.addEventListener("change", applyBracket);
+  }
 
   const deductionsBody = settingsSection.querySelector(".deductions-body");
   const addDeductionBtn = document.createElement("button");

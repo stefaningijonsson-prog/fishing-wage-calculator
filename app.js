@@ -65,10 +65,11 @@ const TAB_CONFIGS = {
     },
     splitPercent: 19.38, // ch. 3.02, 40m+ / 301-500 rúml, 13 menn
     crew: [
-      { role: "Skipper", shares: 2, count: 1 },
-      { role: "First mate / Chief engineer", shares: 1.5, count: 2 },
-      { role: "Second mate / Second engineer / Cook", shares: 1.25, count: 3 },
-      { role: "Deckhand", shares: 1, count: 8 },
+      { role: "2 shares", shares: 2, count: 1 },
+      { role: "1.5 shares", shares: 1.5, count: 2 },
+      { role: "1.25 shares", shares: 1.25, count: 3 },
+      { role: "1.125 shares", shares: 1.125, count: 0 },
+      { role: "1 share", shares: 1, count: 8 },
     ],
   },
   longline: {
@@ -93,13 +94,11 @@ const TAB_CONFIGS = {
     },
     splitPercent: 21.98, // útilegur, 40m+, 14 menn
     crew: [
-      { role: "Skipper", shares: 2, count: 1 },
-      { role: "Chief engineer", shares: 1.5, count: 1 },
-      { role: "First engineer", shares: 1.25, count: 1 },
-      { role: "Second engineer", shares: 1.125, count: 1 },
-      { role: "Line operator", shares: 1.25, count: 1 },
-      { role: "Cook", shares: 1.25, count: 1 },
-      { role: "Deckhand", shares: 1, count: 8 },
+      { role: "2 shares", shares: 2, count: 1 },
+      { role: "1.5 shares", shares: 1.5, count: 1 },
+      { role: "1.25 shares", shares: 1.25, count: 3 },
+      { role: "1.125 shares", shares: 1.125, count: 1 },
+      { role: "1 share", shares: 1, count: 8 },
     ],
   },
   trawl: {
@@ -118,12 +117,11 @@ const TAB_CONFIGS = {
     },
     splitPercent: 19.31, // ch. 5.11, skuttogarar 40m+, 15 menn
     crew: [
-      { role: "Skipper", shares: 2, count: 1 },
-      { role: "Chief engineer", shares: 1.5, count: 1 },
-      { role: "First engineer", shares: 1.25, count: 1 },
-      { role: "Net operator", shares: 1.125, count: 1 },
-      { role: "Cook", shares: 1.25, count: 1 },
-      { role: "Deckhand", shares: 1.2, count: 10 },
+      { role: "2 shares", shares: 2, count: 1 },
+      { role: "1.5 shares", shares: 1.5, count: 1 },
+      { role: "1.25 shares", shares: 1.25, count: 2 },
+      { role: "1.125 shares", shares: 1.125, count: 1 },
+      { role: "1 share", shares: 1, count: 10 },
     ],
   },
   pelagic: {
@@ -131,11 +129,11 @@ const TAB_CONFIGS = {
     locked: false,
     splitPercent: 19.72, // ch. 7.02, flotvarpa (pelagic trawl), 15 menn
     crew: [
-      { role: "Skipper", shares: 2, count: 1 },
-      { role: "Chief engineer", shares: 1.5, count: 1 },
-      { role: "First engineer", shares: 1.25, count: 1 },
-      { role: "Cook", shares: 1.25, count: 1 },
-      { role: "Deckhand", shares: 1, count: 11 },
+      { role: "2 shares", shares: 2, count: 1 },
+      { role: "1.5 shares", shares: 1.5, count: 1 },
+      { role: "1.25 shares", shares: 1.25, count: 2 },
+      { role: "1.125 shares", shares: 1.125, count: 0 },
+      { role: "1 share", shares: 1, count: 11 },
     ],
   },
 };

@@ -73,7 +73,7 @@ const TAB_CONFIGS = {
     ],
   },
   longline: {
-    label: "Longline",
+    label: "Lína",
     locked: false,
     // ch. 2.05 (landróðrar / day boats) and 2.06 (útilegur / extended trips), by registered length.
     brackets: {
@@ -102,7 +102,7 @@ const TAB_CONFIGS = {
     ],
   },
   trawl: {
-    label: "Trawl",
+    label: "Troll",
     locked: false,
     // ch. 5.01/5.11, by vessel category - tonnage and length thresholds differ per category.
     brackets: {
@@ -125,7 +125,7 @@ const TAB_CONFIGS = {
     ],
   },
   dragnet: {
-    label: "Dragnet",
+    label: "Dragnót",
     locked: false,
     // ch. 4.01, by registered length (boats first registered after 1 Jan 2023, or new to dragnet fishing).
     brackets: {

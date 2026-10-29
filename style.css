@@ -38,6 +38,32 @@ main {
   gap: 24px;
 }
 
+#tab-bar {
+  max-width: 900px;
+  margin: 0 auto;
+  padding: 0 24px;
+  display: flex;
+  gap: 4px;
+  flex-wrap: wrap;
+  margin-top: 16px;
+}
+
+.tab-btn {
+  background: var(--card);
+  color: var(--navy);
+  border: 1px solid var(--border);
+  border-bottom: none;
+  padding: 10px 16px;
+  border-radius: 8px 8px 0 0;
+  font-weight: 600;
+  font-size: 0.9rem;
+}
+
+.tab-btn.active {
+  background: var(--navy);
+  color: white;
+}
+
 section {
   background: var(--card);
   border: 1px solid var(--border);

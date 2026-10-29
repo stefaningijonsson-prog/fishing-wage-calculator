@@ -1,53 +1,16 @@
-// ---------- Storage keys ----------
-const STORAGE_DEDUCTIONS = "fwc_deductions";
-const STORAGE_SETTLEMENTS = "fwc_settlements";
-
-// ---------- Locked contract values ----------
-const LOCKED_SPLIT_PERCENT = 19.38;
+// ---------- Shared reference data (same fish, same prices, across every gear type) ----------
 const KG_PER_BOX = 300;
 
-const LOCKED_CREW = [
-  { role: "Skipper", shares: 2, count: 1 },
-  { role: "First mate / Chief engineer", shares: 1.5, count: 2 },
-  { role: "Second mate / Second engineer / Cook", shares: 1.25, count: 3 },
-  { role: "Deckhand", shares: 1, count: 8 },
-];
-
 const DEFAULT_SPECIES = [
-  "Þorskur",
-  "Undirmálsþorskur",
-  "Ýsa",
-  "Undirmálsýsa",
-  "Lýsa",
-  "Ufsi",
-  "Langa",
-  "Blálanga",
-  "Keila",
-  "Stóra brosma",
-  "Gullkarfi",
-  "Steinbítur",
-  "Hlýri",
-  "Grálúða",
-  "Skarkoli",
-  "Sandkoli",
-  "Skrápflúra",
-  "Stórkjafta",
-  "Langlúra",
-  "Þykkvalúra",
-  "Skötuselur",
-  "Lúða",
-  "Grásleppa",
-  "Bleikjuflök",
-  "Skata",
-  "Náskata",
-  "Tindaskata",
-  "Þorskalifur",
-  "Blönduð lifur",
-  "Þorskhrogn",
-  "Blönduð hrogn",
+  "Þorskur", "Undirmálsþorskur", "Ýsa", "Undirmálsýsa", "Lýsa", "Ufsi",
+  "Langa", "Blálanga", "Keila", "Stóra brosma", "Gullkarfi", "Steinbítur",
+  "Hlýri", "Grálúða", "Skarkoli", "Sandkoli", "Skrápflúra", "Stórkjafta",
+  "Langlúra", "Þykkvalúra", "Skötuselur", "Lúða", "Grásleppa", "Bleikjuflök",
+  "Skata", "Náskata", "Tindaskata",
+  "Þorskalifur", "Blönduð lifur", "Þorskhrogn", "Blönduð hrogn",
 ];
 
-// One-time snapshot of prices (ISK/kg), pulled 2026-10-29.
+// One-time price snapshot (ISK/kg), pulled 2026-10-29.
 // Þorskur, Ýsa, Ufsi use Verðlagsstofa skiptaverðs reference prices (slægt, largest size class):
 // Þorskur 6kg, Ýsa 2.5kg, Ufsi 3.5kg og stærra. Everything else is the mbl.is/200milur market average.
 // Liver/roe lines are left blank on purpose - those are priced manually.
@@ -80,95 +43,65 @@ const PRICE_SNAPSHOT = {
   "Tindaskata": 37.39,
 };
 
-let crew = LOCKED_CREW;
-let deductions = [];
-let catches = [];
+// ---------- Per gear-type tab configuration ----------
+// "net" is locked to this specific boat's agreed numbers. Every other tab is a reasonable
+// starting point pulled from the SSÍ/SFS agreement's mid-range bracket for that gear type —
+// it's editable so a crew on a different tonnage/headcount bracket can match their own contract.
+const TAB_CONFIGS = {
+  net: {
+    label: "Net",
+    locked: true,
+    splitPercent: 19.38,
+    crew: [
+      { role: "Skipper", shares: 2, count: 1 },
+      { role: "First mate / Chief engineer", shares: 1.5, count: 2 },
+      { role: "Second mate / Second engineer / Cook", shares: 1.25, count: 3 },
+      { role: "Deckhand", shares: 1, count: 8 },
+    ],
+  },
+  longline: {
+    label: "Longline",
+    locked: false,
+    splitPercent: 32.3,
+    crew: [
+      { role: "Skipper", shares: 2, count: 1 },
+      { role: "Chief engineer", shares: 1.5, count: 1 },
+      { role: "First engineer", shares: 1.25, count: 1 },
+      { role: "Second engineer", shares: 1.125, count: 1 },
+      { role: "Line operator", shares: 1.25, count: 1 },
+      { role: "Cook", shares: 1.25, count: 1 },
+      { role: "Deckhand", shares: 1, count: 8 },
+    ],
+  },
+  trawl: {
+    label: "Trawl",
+    locked: false,
+    splitPercent: 29.0,
+    crew: [
+      { role: "Skipper", shares: 2, count: 1 },
+      { role: "Chief engineer", shares: 1.5, count: 1 },
+      { role: "First engineer", shares: 1.25, count: 1 },
+      { role: "Net operator", shares: 1.125, count: 1 },
+      { role: "Cook", shares: 1.25, count: 1 },
+      { role: "Deckhand", shares: 1.2, count: 9 },
+    ],
+  },
+  pelagic: {
+    label: "Pelagic (flotvarpa)",
+    locked: false,
+    splitPercent: 29.0,
+    crew: [
+      { role: "Skipper", shares: 2, count: 1 },
+      { role: "Chief engineer", shares: 1.5, count: 1 },
+      { role: "First engineer", shares: 1.25, count: 1 },
+      { role: "Cook", shares: 1.25, count: 1 },
+      { role: "Deckhand", shares: 1, count: 10 },
+    ],
+  },
+};
+
 let idCounter = 1;
-
 function nextId() { return idCounter++; }
-
-// ---------- Persistence ----------
-function loadState() {
-  const storedDeductions = localStorage.getItem(STORAGE_DEDUCTIONS);
-  deductions = storedDeductions ? JSON.parse(storedDeductions) : [];
-
-  catches = DEFAULT_SPECIES.map(species => ({ id: nextId(), species, boxes: 0, pricePerKg: PRICE_SNAPSHOT[species] || 0, locked: true }));
-
-  // make sure id counter is ahead of any loaded ids
-  deductions.forEach(d => { if (d.id >= idCounter) idCounter = d.id + 1; });
-}
-
-function saveDeductions() { localStorage.setItem(STORAGE_DEDUCTIONS, JSON.stringify(deductions)); }
-
-function getSettlements() {
-  const stored = localStorage.getItem(STORAGE_SETTLEMENTS);
-  return stored ? JSON.parse(stored) : [];
-}
-function saveSettlements(list) { localStorage.setItem(STORAGE_SETTLEMENTS, JSON.stringify(list)); }
-
-// ---------- Crew table rendering ----------
-const crewBody = document.getElementById("crew-body");
-
-function renderCrew() {
-  crewBody.innerHTML = "";
-  crew.forEach(member => {
-    const tr = document.createElement("tr");
-    const roleTd = document.createElement("td"); roleTd.textContent = member.role;
-    const sharesTd = document.createElement("td"); sharesTd.textContent = member.shares;
-    const countTd = document.createElement("td"); countTd.textContent = member.count;
-    tr.append(roleTd, sharesTd, countTd);
-    crewBody.appendChild(tr);
-  });
-}
-
-// ---------- Deductions table rendering ----------
-const deductionsBody = document.getElementById("deductions-body");
-
-function renderDeductions() {
-  deductionsBody.innerHTML = "";
-  deductions.forEach(ded => {
-    const tr = document.createElement("tr");
-
-    const labelTd = document.createElement("td");
-    const labelInput = document.createElement("input");
-    labelInput.type = "text";
-    labelInput.value = ded.label;
-    labelInput.placeholder = "e.g. Auction fee";
-    labelInput.addEventListener("input", () => { ded.label = labelInput.value; saveDeductions(); });
-    labelTd.appendChild(labelInput);
-
-    const amountTd = document.createElement("td");
-    const amountInput = document.createElement("input");
-    amountInput.type = "text";
-    amountInput.inputMode = "decimal";
-    amountInput.value = ded.amount;
-    amountInput.addEventListener("input", () => { ded.amount = parseNum(amountInput.value); saveDeductions(); });
-    amountTd.appendChild(amountInput);
-
-    const actionTd = document.createElement("td");
-    const removeBtn = document.createElement("button");
-    removeBtn.textContent = "Remove";
-    removeBtn.className = "danger";
-    removeBtn.addEventListener("click", () => {
-      deductions = deductions.filter(d => d.id !== ded.id);
-      saveDeductions();
-      renderDeductions();
-    });
-    actionTd.appendChild(removeBtn);
-
-    tr.append(labelTd, amountTd, actionTd);
-    deductionsBody.appendChild(tr);
-  });
-}
-
-document.getElementById("add-deduction-btn").addEventListener("click", () => {
-  deductions.push({ id: nextId(), label: "", amount: 0 });
-  saveDeductions();
-  renderDeductions();
-});
-
-// ---------- Catch entries rendering (not persisted between sessions, cleared after save) ----------
-const catchBody = document.getElementById("catch-body");
 
 function formatISK(n) {
   return new Intl.NumberFormat("is-IS", { maximumFractionDigits: 0 }).format(Math.round(n));
@@ -179,199 +112,389 @@ function parseNum(str) {
   return parseFloat(String(str).replace(",", ".")) || 0;
 }
 
-function renderCatches() {
-  catchBody.innerHTML = "";
-  catches.forEach(line => {
-    const tr = document.createElement("tr");
+// ---------- Per-tab state ----------
+const tabStates = {}; // tabId -> state object
+const tabContainers = {}; // tabId -> built DOM container (cached so inputs aren't lost on switching)
 
-    const speciesTd = document.createElement("td");
-    if (line.locked) {
-      speciesTd.textContent = line.species;
-    } else {
-      const speciesInput = document.createElement("input");
-      speciesInput.type = "text";
-      speciesInput.value = line.species;
-      speciesInput.placeholder = "e.g. other / company price note";
-      speciesInput.addEventListener("input", () => { line.species = speciesInput.value; });
-      speciesTd.appendChild(speciesInput);
-    }
+function storageKey(tabId, part) { return `fwc_${tabId}_${part}`; }
 
-    const weightTd = document.createElement("td");
-    const valueTd = document.createElement("td");
+function loadTabState(tabId) {
+  const config = TAB_CONFIGS[tabId];
 
-    function refreshRow() {
-      const weightKg = line.boxes * KG_PER_BOX;
-      weightTd.textContent = formatISK(weightKg);
-      valueTd.textContent = formatISK(weightKg * line.pricePerKg);
-    }
+  const storedCrew = localStorage.getItem(storageKey(tabId, "crew"));
+  const crew = (storedCrew ? JSON.parse(storedCrew) : config.crew).map(c => ({ id: nextId(), ...c }));
 
-    const boxesTd = document.createElement("td");
-    const boxesInput = document.createElement("input");
-    boxesInput.type = "text";
-    boxesInput.inputMode = "decimal";
-    boxesInput.value = line.boxes;
-    boxesInput.addEventListener("input", () => { line.boxes = parseNum(boxesInput.value); refreshRow(); });
-    boxesTd.appendChild(boxesInput);
+  const storedSplit = localStorage.getItem(storageKey(tabId, "split"));
+  const splitPercent = storedSplit !== null ? parseFloat(storedSplit) : config.splitPercent;
 
-    const priceTd = document.createElement("td");
-    const priceInput = document.createElement("input");
-    priceInput.type = "text";
-    priceInput.inputMode = "decimal";
-    priceInput.value = line.pricePerKg;
-    priceInput.addEventListener("input", () => { line.pricePerKg = parseNum(priceInput.value); refreshRow(); });
-    priceTd.appendChild(priceInput);
+  const storedDeductions = localStorage.getItem(storageKey(tabId, "deductions"));
+  const deductions = storedDeductions ? JSON.parse(storedDeductions) : [];
+  deductions.forEach(d => { d.id = nextId(); });
 
-    refreshRow();
-
-    const actionTd = document.createElement("td");
-    if (!line.locked) {
-      const removeBtn = document.createElement("button");
-      removeBtn.textContent = "Remove";
-      removeBtn.className = "danger";
-      removeBtn.addEventListener("click", () => {
-        catches = catches.filter(c => c.id !== line.id);
-        renderCatches();
-      });
-      actionTd.appendChild(removeBtn);
-    }
-
-    tr.append(speciesTd, boxesTd, weightTd, priceTd, valueTd, actionTd);
-    catchBody.appendChild(tr);
-  });
-}
-
-document.getElementById("add-catch-btn").addEventListener("click", () => {
-  catches.push({ id: nextId(), species: "", boxes: 0, pricePerKg: 0, locked: false });
-  renderCatches();
-});
-
-document.getElementById("clear-boxes-btn").addEventListener("click", () => {
-  catches.forEach(line => { line.boxes = 0; });
-  renderCatches();
-});
-
-// ---------- Calculation ----------
-let lastResult = null;
-
-function calculateSettlement() {
-  const totalCatchValue = catches.reduce((sum, c) => sum + (c.boxes * KG_PER_BOX * c.pricePerKg), 0);
-  const totalDeductions = deductions.reduce((sum, d) => sum + d.amount, 0);
-  const splitPercent = LOCKED_SPLIT_PERCENT;
-
-  const netValue = totalCatchValue - totalDeductions;
-  const pool = netValue * (splitPercent / 100);
-  const totalShares = crew.reduce((sum, c) => sum + c.count, 0); // base shares = headcount; extra multipliers ride on top, not diluting the divisor
-  const shareValue = totalShares > 0 ? pool / totalShares : 0;
-
-  const payouts = crew.map(c => ({
-    role: c.role,
-    shares: c.shares,
-    count: c.count,
-    payPerPerson: shareValue * c.shares,
-    payTotal: shareValue * c.shares * c.count,
+  const catches = DEFAULT_SPECIES.map(species => ({
+    id: nextId(), species, boxes: 0, pricePerKg: PRICE_SNAPSHOT[species] || 0, locked: true,
   }));
 
-  lastResult = {
-    totalCatchValue, totalDeductions, netValue,
-    splitPercent, pool, totalShares, shareValue, payouts,
-    catches: JSON.parse(JSON.stringify(catches)),
-  };
-  return lastResult;
+  return { tabId, config, crew, splitPercent, deductions, catches, lastResult: null };
 }
 
-function renderResult(result) {
-  const out = document.getElementById("result-output");
+function saveCrew(state) { localStorage.setItem(storageKey(state.tabId, "crew"), JSON.stringify(state.crew)); }
+function saveSplit(state) { localStorage.setItem(storageKey(state.tabId, "split"), String(state.splitPercent)); }
+function saveDeductions(state) { localStorage.setItem(storageKey(state.tabId, "deductions"), JSON.stringify(state.deductions)); }
 
-  const tiles = [
-    ["Total catch value", formatISK(result.totalCatchValue) + " ISK"],
-    ["Deductions", formatISK(result.totalDeductions) + " ISK"],
-    ["Net value", formatISK(result.netValue) + " ISK"],
-    ["Crew pool (" + result.splitPercent + "%)", formatISK(result.pool) + " ISK"],
-    ["Total shares", result.totalShares.toFixed(2)],
-    ["Value per 1 share", formatISK(result.shareValue) + " ISK"],
-  ];
-
-  let html = '<div class="summary-grid">';
-  tiles.forEach(([label, value]) => {
-    html += `<div class="summary-tile"><div class="label">${label}</div><div class="value">${value}</div></div>`;
-  });
-  html += '</div>';
-
-  html += '<table><thead><tr><th>Role / tier</th><th>Shares</th><th>Count</th><th>Pay per person (ISK)</th><th>Tier total (ISK)</th></tr></thead><tbody>';
-  result.payouts.forEach(p => {
-    html += `<tr><td>${p.role}</td><td>${p.shares}</td><td>${p.count}</td><td>${formatISK(p.payPerPerson)}</td><td>${formatISK(p.payTotal)}</td></tr>`;
-  });
-  const totalPay = result.payouts.reduce((s, p) => s + p.payTotal, 0);
-  html += `<tr class="payout-row total"><td colspan="4">Total paid out</td><td>${formatISK(totalPay)}</td></tr>`;
-  html += '</tbody></table>';
-
-  out.innerHTML = html;
-  document.getElementById("save-row").classList.remove("hidden");
+function getSettlements(tabId) {
+  const stored = localStorage.getItem(storageKey(tabId, "settlements"));
+  return stored ? JSON.parse(stored) : [];
 }
+function saveSettlements(tabId, list) { localStorage.setItem(storageKey(tabId, "settlements"), JSON.stringify(list)); }
 
-document.getElementById("calc-btn").addEventListener("click", () => {
-  const result = calculateSettlement();
-  renderResult(result);
-});
+// ---------- Build the full UI for one tab ----------
+function buildTab(state) {
+  const root = document.createElement("div");
 
-// ---------- Save settlement to history ----------
-document.getElementById("save-settlement-btn").addEventListener("click", () => {
-  if (!lastResult) return;
-  const date = document.getElementById("settlement-date").value || new Date().toISOString().slice(0, 10);
-  const settlements = getSettlements();
-  settlements.push({ id: nextId(), date, ...lastResult });
-  saveSettlements(settlements);
-  renderHistory();
-});
-
-// ---------- History ----------
-function renderHistory() {
-  const list = document.getElementById("history-list");
-  const settlements = getSettlements().sort((a, b) => b.date.localeCompare(a.date));
-
-  if (settlements.length === 0) {
-    list.innerHTML = '<p class="empty-msg">No settlements saved yet.</p>';
-    return;
+  // Crew & shares
+  const crewSection = document.createElement("section");
+  crewSection.innerHTML = `<h2>Crew &amp; Shares</h2>
+    <p class="hint">${state.config.locked
+      ? 'Locked to the contract tiers. "Shares" is the multiplier of one regular deckhand share. "Count" is how many crew members currently hold that tier.'
+      : 'Starting point from the union agreement\'s mid-range bracket for this gear type — edit roles, shares, and counts to match your own boat\'s contract.'}</p>
+    <table><thead><tr><th>Role / tier</th><th>Shares</th><th>Count</th><th></th></tr></thead><tbody class="crew-body"></tbody></table>`;
+  const crewBody = crewSection.querySelector(".crew-body");
+  if (!state.config.locked) {
+    const addCrewBtn = document.createElement("button");
+    addCrewBtn.textContent = "+ Add share tier";
+    addCrewBtn.className = "secondary";
+    addCrewBtn.addEventListener("click", () => {
+      state.crew.push({ id: nextId(), role: "Deckhand", shares: 1, count: 1 });
+      saveCrew(state);
+      renderCrew();
+    });
+    crewSection.appendChild(addCrewBtn);
   }
 
-  list.innerHTML = "";
-  settlements.forEach(s => {
-    const card = document.createElement("div");
-    card.className = "history-card";
+  function renderCrew() {
+    crewBody.innerHTML = "";
+    state.crew.forEach(member => {
+      const tr = document.createElement("tr");
 
-    const info = document.createElement("div");
-    const totalPay = s.payouts.reduce((sum, p) => sum + p.payTotal, 0);
-    info.innerHTML = `<strong>${s.date}</strong><div class="meta">Catch value: ${formatISK(s.totalCatchValue)} ISK &middot; Paid out: ${formatISK(totalPay)} ISK</div>`;
+      if (state.config.locked) {
+        const roleTd = document.createElement("td"); roleTd.textContent = member.role;
+        const sharesTd = document.createElement("td"); sharesTd.textContent = member.shares;
+        const countTd = document.createElement("td"); countTd.textContent = member.count;
+        tr.append(roleTd, sharesTd, countTd, document.createElement("td"));
+      } else {
+        const roleTd = document.createElement("td");
+        const roleInput = document.createElement("input");
+        roleInput.type = "text"; roleInput.value = member.role;
+        roleInput.addEventListener("input", () => { member.role = roleInput.value; saveCrew(state); });
+        roleTd.appendChild(roleInput);
 
-    const actions = document.createElement("div");
-    actions.className = "actions";
-    const viewBtn = document.createElement("button");
-    viewBtn.textContent = "View";
-    viewBtn.className = "secondary";
-    viewBtn.addEventListener("click", () => {
-      lastResult = s;
-      renderResult(s);
-      document.getElementById("result-section").scrollIntoView({ behavior: "smooth" });
+        const sharesTd = document.createElement("td");
+        const sharesInput = document.createElement("input");
+        sharesInput.type = "text"; sharesInput.inputMode = "decimal"; sharesInput.value = member.shares;
+        sharesInput.addEventListener("input", () => { member.shares = parseNum(sharesInput.value); saveCrew(state); });
+        sharesTd.appendChild(sharesInput);
+
+        const countTd = document.createElement("td");
+        const countInput = document.createElement("input");
+        countInput.type = "text"; countInput.inputMode = "numeric"; countInput.value = member.count;
+        countInput.addEventListener("input", () => { member.count = parseInt(parseNum(countInput.value)) || 0; saveCrew(state); });
+        countTd.appendChild(countInput);
+
+        const actionTd = document.createElement("td");
+        const removeBtn = document.createElement("button");
+        removeBtn.textContent = "Remove"; removeBtn.className = "danger";
+        removeBtn.addEventListener("click", () => {
+          state.crew = state.crew.filter(c => c.id !== member.id);
+          saveCrew(state);
+          renderCrew();
+        });
+        actionTd.appendChild(removeBtn);
+
+        tr.append(roleTd, sharesTd, countTd, actionTd);
+      }
+      crewBody.appendChild(tr);
     });
-    const delBtn = document.createElement("button");
-    delBtn.textContent = "Delete";
-    delBtn.className = "danger";
-    delBtn.addEventListener("click", () => {
-      const remaining = getSettlements().filter(x => x.id !== s.id);
-      saveSettlements(remaining);
-      renderHistory();
-    });
-    actions.append(viewBtn, delBtn);
+  }
+  renderCrew();
 
-    card.append(info, actions);
-    list.appendChild(card);
+  // Split settings
+  const settingsSection = document.createElement("section");
+  settingsSection.innerHTML = `<h2>Split Settings</h2>
+    <div class="settings-grid">
+      <label>Crew split percentage ${state.config.locked ? "(locked)" : ""}
+        <input type="text" class="split-input" inputmode="decimal" ${state.config.locked ? "disabled" : ""}>
+        <span class="unit">%</span>
+      </label>
+    </div>
+    <p class="hint">Fuel/oil is already baked into the split percentage above. Any other deductions below are subtracted from the total catch value before the crew's percentage is applied.</p>
+    <table><thead><tr><th>Deduction</th><th>Amount (ISK)</th><th></th></tr></thead><tbody class="deductions-body"></tbody></table>`;
+  const splitInput = settingsSection.querySelector(".split-input");
+  splitInput.value = state.splitPercent;
+  splitInput.addEventListener("input", () => { state.splitPercent = parseNum(splitInput.value); saveSplit(state); });
+
+  const deductionsBody = settingsSection.querySelector(".deductions-body");
+  const addDeductionBtn = document.createElement("button");
+  addDeductionBtn.textContent = "+ Add deduction"; addDeductionBtn.className = "secondary";
+  addDeductionBtn.addEventListener("click", () => {
+    state.deductions.push({ id: nextId(), label: "", amount: 0 });
+    saveDeductions(state);
+    renderDeductions();
+  });
+  settingsSection.appendChild(addDeductionBtn);
+
+  function renderDeductions() {
+    deductionsBody.innerHTML = "";
+    state.deductions.forEach(ded => {
+      const tr = document.createElement("tr");
+
+      const labelTd = document.createElement("td");
+      const labelInput = document.createElement("input");
+      labelInput.type = "text"; labelInput.value = ded.label; labelInput.placeholder = "e.g. Auction fee";
+      labelInput.addEventListener("input", () => { ded.label = labelInput.value; saveDeductions(state); });
+      labelTd.appendChild(labelInput);
+
+      const amountTd = document.createElement("td");
+      const amountInput = document.createElement("input");
+      amountInput.type = "text"; amountInput.inputMode = "decimal"; amountInput.value = ded.amount;
+      amountInput.addEventListener("input", () => { ded.amount = parseNum(amountInput.value); saveDeductions(state); });
+      amountTd.appendChild(amountInput);
+
+      const actionTd = document.createElement("td");
+      const removeBtn = document.createElement("button");
+      removeBtn.textContent = "Remove"; removeBtn.className = "danger";
+      removeBtn.addEventListener("click", () => {
+        state.deductions = state.deductions.filter(d => d.id !== ded.id);
+        saveDeductions(state);
+        renderDeductions();
+      });
+      actionTd.appendChild(removeBtn);
+
+      tr.append(labelTd, amountTd, actionTd);
+      deductionsBody.appendChild(tr);
+    });
+  }
+  renderDeductions();
+
+  // Catch / sale entries
+  const catchSection = document.createElement("section");
+  catchSection.innerHTML = `<h2>Catch / Sale Entries</h2>
+    <p class="hint">Species list is fixed — fill in boxes (300 kg each) for whichever species you landed. Weight fills in automatically. Cod, haddock, and saithe are pre-filled with the Verðlagsstofa skiptaverðs reference price for the largest size class; everything else uses the latest public market average (as of 29 Oct 2026). All prices are editable — the liver/roe lines are left blank for you to enter your own agreed price. Use "+ Add other line" only for something not on the list.</p>
+    <table><thead><tr><th>Species / note</th><th>Boxes (&times;300kg)</th><th>Weight (kg)</th><th>Price per kg (ISK)</th><th>Value</th><th></th></tr></thead><tbody class="catch-body"></tbody></table>`;
+  const catchBody = catchSection.querySelector(".catch-body");
+
+  const addCatchBtn = document.createElement("button");
+  addCatchBtn.textContent = "+ Add other line"; addCatchBtn.className = "secondary";
+  addCatchBtn.addEventListener("click", () => {
+    state.catches.push({ id: nextId(), species: "", boxes: 0, pricePerKg: 0, locked: false });
+    renderCatches();
+  });
+  const clearBoxesBtn = document.createElement("button");
+  clearBoxesBtn.textContent = "Clear all boxes"; clearBoxesBtn.className = "secondary";
+  clearBoxesBtn.addEventListener("click", () => {
+    state.catches.forEach(line => { line.boxes = 0; });
+    renderCatches();
+  });
+  catchSection.append(addCatchBtn, clearBoxesBtn);
+
+  function renderCatches() {
+    catchBody.innerHTML = "";
+    state.catches.forEach(line => {
+      const tr = document.createElement("tr");
+
+      const speciesTd = document.createElement("td");
+      if (line.locked) {
+        speciesTd.textContent = line.species;
+      } else {
+        const speciesInput = document.createElement("input");
+        speciesInput.type = "text"; speciesInput.value = line.species;
+        speciesInput.placeholder = "e.g. other / company price note";
+        speciesInput.addEventListener("input", () => { line.species = speciesInput.value; });
+        speciesTd.appendChild(speciesInput);
+      }
+
+      const weightTd = document.createElement("td");
+      const valueTd = document.createElement("td");
+      function refreshRow() {
+        const weightKg = line.boxes * KG_PER_BOX;
+        weightTd.textContent = formatISK(weightKg);
+        valueTd.textContent = formatISK(weightKg * line.pricePerKg);
+      }
+
+      const boxesTd = document.createElement("td");
+      const boxesInput = document.createElement("input");
+      boxesInput.type = "text"; boxesInput.inputMode = "decimal"; boxesInput.value = line.boxes;
+      boxesInput.addEventListener("input", () => { line.boxes = parseNum(boxesInput.value); refreshRow(); });
+      boxesTd.appendChild(boxesInput);
+
+      const priceTd = document.createElement("td");
+      const priceInput = document.createElement("input");
+      priceInput.type = "text"; priceInput.inputMode = "decimal"; priceInput.value = line.pricePerKg;
+      priceInput.addEventListener("input", () => { line.pricePerKg = parseNum(priceInput.value); refreshRow(); });
+      priceTd.appendChild(priceInput);
+
+      refreshRow();
+
+      const actionTd = document.createElement("td");
+      if (!line.locked) {
+        const removeBtn = document.createElement("button");
+        removeBtn.textContent = "Remove"; removeBtn.className = "danger";
+        removeBtn.addEventListener("click", () => {
+          state.catches = state.catches.filter(c => c.id !== line.id);
+          renderCatches();
+        });
+        actionTd.appendChild(removeBtn);
+      }
+
+      tr.append(speciesTd, boxesTd, weightTd, priceTd, valueTd, actionTd);
+      catchBody.appendChild(tr);
+    });
+  }
+  renderCatches();
+
+  // Settlement
+  const resultSection = document.createElement("section");
+  resultSection.innerHTML = `<h2>Settlement</h2>
+    <button class="calc-btn primary">Calculate settlement</button>
+    <div class="result-output"></div>
+    <div class="save-row hidden">
+      <label>Settlement date <input type="date" class="settlement-date"></label>
+      <button class="save-settlement-btn primary">Save this settlement</button>
+    </div>`;
+  const resultOutput = resultSection.querySelector(".result-output");
+  const saveRow = resultSection.querySelector(".save-row");
+  const settlementDate = resultSection.querySelector(".settlement-date");
+  settlementDate.value = new Date().toISOString().slice(0, 10);
+
+  function calculateSettlement() {
+    const totalCatchValue = state.catches.reduce((sum, c) => sum + (c.boxes * KG_PER_BOX * c.pricePerKg), 0);
+    const totalDeductions = state.deductions.reduce((sum, d) => sum + d.amount, 0);
+    const splitPercent = state.splitPercent;
+
+    const netValue = totalCatchValue - totalDeductions;
+    const pool = netValue * (splitPercent / 100);
+    const totalShares = state.crew.reduce((sum, c) => sum + c.count, 0); // base shares = headcount; extra multipliers ride on top
+    const shareValue = totalShares > 0 ? pool / totalShares : 0;
+
+    const payouts = state.crew.map(c => ({
+      role: c.role, shares: c.shares, count: c.count,
+      payPerPerson: shareValue * c.shares,
+      payTotal: shareValue * c.shares * c.count,
+    }));
+
+    state.lastResult = {
+      totalCatchValue, totalDeductions, netValue, splitPercent, pool, totalShares, shareValue, payouts,
+    };
+    return state.lastResult;
+  }
+
+  function renderResult(result) {
+    const tiles = [
+      ["Total catch value", formatISK(result.totalCatchValue) + " ISK"],
+      ["Deductions", formatISK(result.totalDeductions) + " ISK"],
+      ["Net value", formatISK(result.netValue) + " ISK"],
+      ["Crew pool (" + result.splitPercent + "%)", formatISK(result.pool) + " ISK"],
+      ["Crew headcount", result.totalShares],
+      ["Value per 1 base share", formatISK(result.shareValue) + " ISK"],
+    ];
+    let html = '<div class="summary-grid">';
+    tiles.forEach(([label, value]) => {
+      html += `<div class="summary-tile"><div class="label">${label}</div><div class="value">${value}</div></div>`;
+    });
+    html += '</div>';
+
+    html += '<table><thead><tr><th>Role / tier</th><th>Shares</th><th>Count</th><th>Pay per person (ISK)</th><th>Tier total (ISK)</th></tr></thead><tbody>';
+    result.payouts.forEach(p => {
+      html += `<tr><td>${p.role}</td><td>${p.shares}</td><td>${p.count}</td><td>${formatISK(p.payPerPerson)}</td><td>${formatISK(p.payTotal)}</td></tr>`;
+    });
+    const totalPay = result.payouts.reduce((s, p) => s + p.payTotal, 0);
+    html += `<tr class="payout-row total"><td colspan="4">Total paid out</td><td>${formatISK(totalPay)}</td></tr>`;
+    html += '</tbody></table>';
+
+    resultOutput.innerHTML = html;
+    saveRow.classList.remove("hidden");
+  }
+
+  resultSection.querySelector(".calc-btn").addEventListener("click", () => {
+    renderResult(calculateSettlement());
+  });
+
+  // History
+  const historySection = document.createElement("section");
+  historySection.innerHTML = `<h2>Past Settlements</h2><div class="history-list"></div>`;
+  const historyList = historySection.querySelector(".history-list");
+
+  function renderHistory() {
+    const settlements = getSettlements(state.tabId).sort((a, b) => b.date.localeCompare(a.date));
+    if (settlements.length === 0) {
+      historyList.innerHTML = '<p class="empty-msg">No settlements saved yet.</p>';
+      return;
+    }
+    historyList.innerHTML = "";
+    settlements.forEach(s => {
+      const card = document.createElement("div");
+      card.className = "history-card";
+      const totalPay = s.payouts.reduce((sum, p) => sum + p.payTotal, 0);
+      const info = document.createElement("div");
+      info.innerHTML = `<strong>${s.date}</strong><div class="meta">Catch value: ${formatISK(s.totalCatchValue)} ISK &middot; Paid out: ${formatISK(totalPay)} ISK</div>`;
+
+      const actions = document.createElement("div");
+      actions.className = "actions";
+      const viewBtn = document.createElement("button");
+      viewBtn.textContent = "View"; viewBtn.className = "secondary";
+      viewBtn.addEventListener("click", () => {
+        renderResult(s);
+        resultSection.scrollIntoView({ behavior: "smooth" });
+      });
+      const delBtn = document.createElement("button");
+      delBtn.textContent = "Delete"; delBtn.className = "danger";
+      delBtn.addEventListener("click", () => {
+        saveSettlements(state.tabId, getSettlements(state.tabId).filter(x => x.id !== s.id));
+        renderHistory();
+      });
+      actions.append(viewBtn, delBtn);
+      card.append(info, actions);
+      historyList.appendChild(card);
+    });
+  }
+  renderHistory();
+
+  resultSection.querySelector(".save-settlement-btn").addEventListener("click", () => {
+    if (!state.lastResult) return;
+    const date = settlementDate.value || new Date().toISOString().slice(0, 10);
+    const settlements = getSettlements(state.tabId);
+    settlements.push({ id: nextId(), date, ...state.lastResult });
+    saveSettlements(state.tabId, settlements);
+    renderHistory();
+  });
+
+  root.append(crewSection, settingsSection, catchSection, resultSection, historySection);
+  return root;
+}
+
+// ---------- Tab switching ----------
+function showTab(tabId) {
+  document.querySelectorAll(".tab-btn").forEach(btn => btn.classList.toggle("active", btn.dataset.tab === tabId));
+  const content = document.getElementById("tab-content");
+  content.innerHTML = "";
+  if (!tabContainers[tabId]) {
+    tabStates[tabId] = loadTabState(tabId);
+    tabContainers[tabId] = buildTab(tabStates[tabId]);
+  }
+  content.appendChild(tabContainers[tabId]);
+}
+
+function initTabs() {
+  const bar = document.getElementById("tab-bar");
+  Object.keys(TAB_CONFIGS).forEach((tabId, i) => {
+    const btn = document.createElement("button");
+    btn.className = "tab-btn";
+    btn.textContent = TAB_CONFIGS[tabId].label;
+    btn.dataset.tab = tabId;
+    btn.addEventListener("click", () => showTab(tabId));
+    bar.appendChild(btn);
+    if (i === 0) showTab(tabId);
   });
 }
 
-// ---------- Init ----------
-loadState();
-renderCrew();
-renderDeductions();
-renderCatches();
-renderHistory();
-document.getElementById("settlement-date").value = new Date().toISOString().slice(0, 10);
+initTabs();

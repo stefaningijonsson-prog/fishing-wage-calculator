@@ -9,65 +9,12 @@
 <body>
 <header>
   <h1>Fishing Boat Wage Calculator</h1>
-  <p class="subtitle">Catch value split calculator for net-boat crew shares</p>
+  <p class="subtitle">Catch value split calculator for Icelandic crew shares</p>
 </header>
 
-<main>
+<nav id="tab-bar"></nav>
 
-  <section id="crew-section">
-    <h2>Crew &amp; Shares</h2>
-    <p class="hint">Locked to the contract tiers. "Shares" is the multiplier of one regular deckhand share. "Count" is how many crew members currently hold that tier.</p>
-    <table id="crew-table">
-      <thead>
-        <tr><th>Role / tier</th><th>Shares</th><th>Count</th></tr>
-      </thead>
-      <tbody id="crew-body"></tbody>
-    </table>
-  </section>
-
-  <section id="settings-section">
-    <h2>Split Settings</h2>
-    <div class="settings-grid">
-      <label>Crew split percentage (locked)
-        <input type="number" id="split-percent" value="19.38" disabled>
-        <span class="unit">%</span>
-      </label>
-    </div>
-    <p class="hint">Fuel/oil is already accounted for in the locked split percentage above. Any other deductions below are subtracted from the total catch value before the crew's percentage is applied.</p>
-    <table id="deductions-table">
-      <thead><tr><th>Deduction</th><th>Amount (ISK)</th><th></th></tr></thead>
-      <tbody id="deductions-body"></tbody>
-    </table>
-    <button id="add-deduction-btn" class="secondary">+ Add deduction</button>
-  </section>
-
-  <section id="catch-section">
-    <h2>Catch / Sale Entries</h2>
-    <p class="hint">Species list is fixed — fill in boxes (300 kg each) for whichever species you landed. Weight fills in automatically. Cod, haddock, and saithe are pre-filled with the Verðlagsstofa skiptaverðs reference price for the largest size class; everything else uses the latest public market average (as of 29 Oct 2026). All prices are editable — the liver/roe lines are left blank for you to enter your own agreed price. Use "+ Add other line" only for something not on the list.</p>
-    <table id="catch-table">
-      <thead><tr><th>Species / note</th><th>Boxes (&times;300kg)</th><th>Weight (kg)</th><th>Price per kg (ISK)</th><th>Value</th><th></th></tr></thead>
-      <tbody id="catch-body"></tbody>
-    </table>
-    <button id="add-catch-btn" class="secondary">+ Add other line</button>
-    <button id="clear-boxes-btn" class="secondary">Clear all boxes</button>
-  </section>
-
-  <section id="result-section">
-    <h2>Settlement</h2>
-    <button id="calc-btn" class="primary">Calculate settlement</button>
-    <div id="result-output"></div>
-    <div id="save-row" class="hidden">
-      <label>Settlement date <input type="date" id="settlement-date"></label>
-      <button id="save-settlement-btn" class="primary">Save this settlement</button>
-    </div>
-  </section>
-
-  <section id="history-section">
-    <h2>Past Settlements</h2>
-    <div id="history-list"></div>
-  </section>
-
-</main>
+<main id="tab-content"></main>
 
 <script src="app.js"></script>
 </body>

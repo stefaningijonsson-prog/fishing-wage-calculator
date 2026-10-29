@@ -244,7 +244,6 @@ function buildTab(state) {
         <span class="unit">%</span>
       </label>
     </div>
-    <p class="hint">Olíukostnaður er innifalinn í skiptaprósentunni hér að ofan. Annar frádráttur hér fyrir neðan dregst frá heildarverðmæti aflans áður en skiptaprósentan er reiknuð.</p>
     <table><thead><tr><th>Frádráttur</th><th>Upphæð (kr.)</th><th></th></tr></thead><tbody class="deductions-body"></tbody></table>`;
   const splitInput = settingsSection.querySelector(".split-input");
   splitInput.value = state.splitPercent;
@@ -268,7 +267,7 @@ function buildTab(state) {
         <label>Skráningarlengd
           <select class="length-select"></select>
         </label>`;
-      settingsSection.insertBefore(bracketDiv, settingsSection.querySelector(".hint"));
+      settingsSection.insertBefore(bracketDiv, settingsSection.querySelector("table"));
 
       const tripSelect = bracketDiv.querySelector(".trip-type-select");
       const lengthSelect = bracketDiv.querySelector(".length-select");
@@ -310,7 +309,7 @@ function buildTab(state) {
         <label>Flokkur / skráningarlengd
           <select class="bracket-select"></select>
         </label>`;
-      settingsSection.insertBefore(bracketDiv, settingsSection.querySelector(".hint"));
+      settingsSection.insertBefore(bracketDiv, settingsSection.querySelector("table"));
 
       const bracketSelect = bracketDiv.querySelector(".bracket-select");
       b.options.forEach((bracket, i) => {

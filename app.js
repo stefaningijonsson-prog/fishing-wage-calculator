@@ -169,10 +169,10 @@ function storageKey(tabId, part) { return `fwc_${tabId}_${part}`; }
 function loadTabState(tabId) {
   const config = TAB_CONFIGS[tabId];
 
-  const storedCrew = localStorage.getItem(storageKey(tabId, "crew"));
+  const storedCrew = localStorage.getItem(storageKey(tabId, "crew2"));
   const crew = (storedCrew ? JSON.parse(storedCrew) : config.crew).map(c => ({ id: nextId(), ...c }));
 
-  const storedSplit = localStorage.getItem(storageKey(tabId, "split"));
+  const storedSplit = localStorage.getItem(storageKey(tabId, "split2"));
   const splitPercent = storedSplit !== null ? parseFloat(storedSplit) : config.splitPercent;
 
   const storedDeductions = localStorage.getItem(storageKey(tabId, "deductions"));
@@ -186,8 +186,8 @@ function loadTabState(tabId) {
   return { tabId, config, crew, splitPercent, deductions, catches, lastResult: null };
 }
 
-function saveCrew(state) { localStorage.setItem(storageKey(state.tabId, "crew"), JSON.stringify(state.crew)); }
-function saveSplit(state) { localStorage.setItem(storageKey(state.tabId, "split"), String(state.splitPercent)); }
+function saveCrew(state) { localStorage.setItem(storageKey(state.tabId, "crew2"), JSON.stringify(state.crew)); }
+function saveSplit(state) { localStorage.setItem(storageKey(state.tabId, "split2"), String(state.splitPercent)); }
 function saveDeductions(state) { localStorage.setItem(storageKey(state.tabId, "deductions"), JSON.stringify(state.deductions)); }
 
 function getSettlements(tabId) {

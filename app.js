@@ -62,7 +62,7 @@ const TAB_CONFIGS = {
   longline: {
     label: "Longline",
     locked: false,
-    splitPercent: 32.3,
+    splitPercent: 29.4, // 191-241 brl bracket, 12 crew, from the 2024 SFS/SSÍ agreement
     crew: [
       { role: "Skipper", shares: 2, count: 1 },
       { role: "Chief engineer", shares: 1.5, count: 1 },
@@ -70,13 +70,13 @@ const TAB_CONFIGS = {
       { role: "Second engineer", shares: 1.125, count: 1 },
       { role: "Line operator", shares: 1.25, count: 1 },
       { role: "Cook", shares: 1.25, count: 1 },
-      { role: "Deckhand", shares: 1, count: 8 },
+      { role: "Deckhand", shares: 1, count: 6 },
     ],
   },
   trawl: {
     label: "Trawl",
     locked: false,
-    splitPercent: 29.0,
+    splitPercent: 27.9, // 29-42m bottom trawlers, 11-14 crew, from the 2024 SFS/SSÍ agreement
     crew: [
       { role: "Skipper", shares: 2, count: 1 },
       { role: "Chief engineer", shares: 1.5, count: 1 },
@@ -89,7 +89,7 @@ const TAB_CONFIGS = {
   pelagic: {
     label: "Pelagic (flotvarpa)",
     locked: false,
-    splitPercent: 29.0,
+    splitPercent: 29.0, // 241-500 rúml herring/capelin trawlers, 14 crew, from the 2024 SFS/SSÍ agreement
     crew: [
       { role: "Skipper", shares: 2, count: 1 },
       { role: "Chief engineer", shares: 1.5, count: 1 },

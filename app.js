@@ -51,7 +51,18 @@ const PRICE_SNAPSHOT = {
 const TAB_CONFIGS = {
   net: {
     label: "Net",
-    locked: true,
+    locked: false,
+    // ch. 3.02, by registered length. Defaults to this boat's confirmed bracket (40m+, 19.38%)
+    // but stays a selector so other crews can pick their own vessel length.
+    brackets: {
+      options: [
+        { label: "Undir 15 m", percent: 22.84, men: 6 },
+        { label: "15 - 23,99 m", percent: 20.41, men: 8 },
+        { label: "24 - 39,99 m", percent: 19.38, men: 12 },
+        { label: "40 m og lengri", percent: 19.38, men: 13 },
+      ],
+      defaultIndex: 3,
+    },
     splitPercent: 19.38, // ch. 3.02, 40m+ / 301-500 rúml, 13 menn
     crew: [
       { role: "Skipper", shares: 2, count: 1 },
@@ -94,6 +105,17 @@ const TAB_CONFIGS = {
   trawl: {
     label: "Trawl",
     locked: false,
+    // ch. 5.01/5.11, by vessel category - tonnage and length thresholds differ per category.
+    brackets: {
+      options: [
+        { label: "Bátar/togarar undir 300 brt, undir 29 m", percent: 20.76, men: 11 },
+        { label: "Skuttogarar 300 brt og stærri, undir 29 m", percent: 19.79, men: 12 },
+        { label: "Skuttogarar 29 - 39,99 m", percent: 19.31, men: "11-14" },
+        { label: "Skuttogarar 40 m og lengri", percent: 19.31, men: 15 },
+        { label: "Frystitogarar (freezer, grunntala)", percent: 21.71, men: 20 },
+      ],
+      defaultIndex: 3,
+    },
     splitPercent: 19.31, // ch. 5.11, skuttogarar 40m+, 15 menn
     crew: [
       { role: "Skipper", shares: 2, count: 1 },
@@ -263,49 +285,80 @@ function buildTab(state) {
     const b = state.config.brackets;
     const bracketDiv = document.createElement("div");
     bracketDiv.className = "settings-grid";
-    bracketDiv.innerHTML = `
-      <label>Trip type
-        <select class="trip-type-select"></select>
-      </label>
-      <label>Vessel length
-        <select class="length-select"></select>
-      </label>`;
-    settingsSection.insertBefore(bracketDiv, settingsSection.querySelector(".hint"));
 
-    const tripSelect = bracketDiv.querySelector(".trip-type-select");
-    const lengthSelect = bracketDiv.querySelector(".length-select");
-    const tripKeys = ["landrodrar", "utilegur"];
+    function optionLabel(bracket) {
+      return `${bracket.label} (${bracket.men} menn, ${bracket.percent}%)`;
+    }
 
-    b.tripTypes.forEach((label, i) => {
-      const opt = document.createElement("option");
-      opt.value = tripKeys[i];
-      opt.textContent = label;
-      tripSelect.appendChild(opt);
-    });
+    if (b.tripTypes) {
+      // Two-dimension selector: trip type x vessel length (longline).
+      bracketDiv.innerHTML = `
+        <label>Trip type
+          <select class="trip-type-select"></select>
+        </label>
+        <label>Vessel length
+          <select class="length-select"></select>
+        </label>`;
+      settingsSection.insertBefore(bracketDiv, settingsSection.querySelector(".hint"));
 
-    function populateLengths(tripKey, selectIndex) {
-      lengthSelect.innerHTML = "";
-      b[tripKey].forEach((bracket, i) => {
+      const tripSelect = bracketDiv.querySelector(".trip-type-select");
+      const lengthSelect = bracketDiv.querySelector(".length-select");
+      const tripKeys = ["landrodrar", "utilegur"];
+
+      b.tripTypes.forEach((label, i) => {
+        const opt = document.createElement("option");
+        opt.value = tripKeys[i];
+        opt.textContent = label;
+        tripSelect.appendChild(opt);
+      });
+
+      function populateLengths(tripKey, selectIndex) {
+        lengthSelect.innerHTML = "";
+        b[tripKey].forEach((bracket, i) => {
+          const opt = document.createElement("option");
+          opt.value = i;
+          opt.textContent = optionLabel(bracket);
+          lengthSelect.appendChild(opt);
+        });
+        lengthSelect.value = selectIndex;
+      }
+
+      function applyBracket() {
+        const bracket = b[tripSelect.value][lengthSelect.value];
+        state.splitPercent = bracket.percent;
+        splitInput.value = bracket.percent;
+        saveSplit(state);
+      }
+
+      tripSelect.value = b.defaultTripType;
+      populateLengths(b.defaultTripType, b.defaultIndex);
+
+      tripSelect.addEventListener("change", () => { populateLengths(tripSelect.value, 0); applyBracket(); });
+      lengthSelect.addEventListener("change", applyBracket);
+    } else {
+      // Single-dimension selector: one list of vessel categories/lengths (net, trawl).
+      bracketDiv.innerHTML = `
+        <label>Vessel category / length
+          <select class="bracket-select"></select>
+        </label>`;
+      settingsSection.insertBefore(bracketDiv, settingsSection.querySelector(".hint"));
+
+      const bracketSelect = bracketDiv.querySelector(".bracket-select");
+      b.options.forEach((bracket, i) => {
         const opt = document.createElement("option");
         opt.value = i;
-        opt.textContent = `${bracket.label} (${bracket.men} menn, ${bracket.percent}%)`;
-        lengthSelect.appendChild(opt);
+        opt.textContent = optionLabel(bracket);
+        bracketSelect.appendChild(opt);
       });
-      lengthSelect.value = selectIndex;
+      bracketSelect.value = b.defaultIndex;
+
+      bracketSelect.addEventListener("change", () => {
+        const bracket = b.options[bracketSelect.value];
+        state.splitPercent = bracket.percent;
+        splitInput.value = bracket.percent;
+        saveSplit(state);
+      });
     }
-
-    function applyBracket() {
-      const bracket = b[tripSelect.value][lengthSelect.value];
-      state.splitPercent = bracket.percent;
-      splitInput.value = bracket.percent;
-      saveSplit(state);
-    }
-
-    tripSelect.value = b.defaultTripType;
-    populateLengths(b.defaultTripType, b.defaultIndex);
-
-    tripSelect.addEventListener("change", () => { populateLengths(tripSelect.value, 0); applyBracket(); });
-    lengthSelect.addEventListener("change", applyBracket);
   }
 
   const deductionsBody = settingsSection.querySelector(".deductions-body");

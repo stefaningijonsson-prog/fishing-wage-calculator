@@ -65,11 +65,11 @@ const TAB_CONFIGS = {
     },
     splitPercent: 19.38, // ch. 3.02, 40m+ / 301-500 rúml, 13 menn
     crew: [
-      { role: "2 shares", shares: 2, count: 1 },
-      { role: "1.5 shares", shares: 1.5, count: 2 },
-      { role: "1.25 shares", shares: 1.25, count: 3 },
-      { role: "1.125 shares", shares: 1.125, count: 0 },
-      { role: "1 share", shares: 1, count: 8 },
+      { role: "2 hlutir", shares: 2, count: 1 },
+      { role: "1,5 hlutur", shares: 1.5, count: 2 },
+      { role: "1,25 hlutur", shares: 1.25, count: 3 },
+      { role: "1,125 hlutur", shares: 1.125, count: 0 },
+      { role: "1 hlutur", shares: 1, count: 8 },
     ],
   },
   longline: {
@@ -77,7 +77,7 @@ const TAB_CONFIGS = {
     locked: false,
     // ch. 2.05 (landróðrar / day boats) and 2.06 (útilegur / extended trips), by registered length.
     brackets: {
-      tripTypes: ["Landróðrar (day boats)", "Útilegur (extended trips)"],
+      tripTypes: ["Landróðrar", "Útilegur"],
       landrodrar: [
         { label: "Undir 15 m", percent: 22.07, men: 5 },
         { label: "15 - 23,99 m", percent: 22.07, men: 7 },
@@ -94,11 +94,11 @@ const TAB_CONFIGS = {
     },
     splitPercent: 21.98, // útilegur, 40m+, 14 menn
     crew: [
-      { role: "2 shares", shares: 2, count: 1 },
-      { role: "1.5 shares", shares: 1.5, count: 1 },
-      { role: "1.25 shares", shares: 1.25, count: 3 },
-      { role: "1.125 shares", shares: 1.125, count: 1 },
-      { role: "1 share", shares: 1, count: 8 },
+      { role: "2 hlutir", shares: 2, count: 1 },
+      { role: "1,5 hlutur", shares: 1.5, count: 1 },
+      { role: "1,25 hlutur", shares: 1.25, count: 3 },
+      { role: "1,125 hlutur", shares: 1.125, count: 1 },
+      { role: "1 hlutur", shares: 1, count: 8 },
     ],
   },
   trawl: {
@@ -111,17 +111,17 @@ const TAB_CONFIGS = {
         { label: "Skuttogarar 300 brt og stærri, undir 29 m", percent: 19.79, men: 12 },
         { label: "Skuttogarar 29 - 39,99 m", percent: 19.31, men: "11-14" },
         { label: "Skuttogarar 40 m og lengri", percent: 19.31, men: 15 },
-        { label: "Frystitogarar (freezer, grunntala)", percent: 21.71, men: 20 },
+        { label: "Frystitogarar (grunntala)", percent: 21.71, men: 20 },
       ],
       defaultIndex: 3,
     },
     splitPercent: 19.31, // ch. 5.11, skuttogarar 40m+, 15 menn
     crew: [
-      { role: "2 shares", shares: 2, count: 1 },
-      { role: "1.5 shares", shares: 1.5, count: 1 },
-      { role: "1.25 shares", shares: 1.25, count: 2 },
-      { role: "1.125 shares", shares: 1.125, count: 1 },
-      { role: "1 share", shares: 1, count: 10 },
+      { role: "2 hlutir", shares: 2, count: 1 },
+      { role: "1,5 hlutur", shares: 1.5, count: 1 },
+      { role: "1,25 hlutur", shares: 1.25, count: 2 },
+      { role: "1,125 hlutur", shares: 1.125, count: 1 },
+      { role: "1 hlutur", shares: 1, count: 10 },
     ],
   },
   dragnet: {
@@ -139,11 +139,11 @@ const TAB_CONFIGS = {
     },
     splitPercent: 21.98, // ch. 4.01, 40m+, 12-14 menn
     crew: [
-      { role: "2 shares", shares: 2, count: 1 },
-      { role: "1.5 shares", shares: 1.5, count: 1 },
-      { role: "1.25 shares", shares: 1.25, count: 2 },
-      { role: "1.125 shares", shares: 1.125, count: 0 },
-      { role: "1 share", shares: 1, count: 10 },
+      { role: "2 hlutir", shares: 2, count: 1 },
+      { role: "1,5 hlutur", shares: 1.5, count: 1 },
+      { role: "1,25 hlutur", shares: 1.25, count: 2 },
+      { role: "1,125 hlutur", shares: 1.125, count: 0 },
+      { role: "1 hlutur", shares: 1, count: 10 },
     ],
   },
 };
@@ -210,18 +210,18 @@ function buildTab(state) {
 
   // Crew & shares
   const crewSection = document.createElement("section");
-  crewSection.innerHTML = `<h2>Crew &amp; Shares</h2>
+  crewSection.innerHTML = `<h2>Hlutur</h2>
     <p class="hint">${state.config.locked
-      ? 'Locked to the contract tiers. "Shares" is the multiplier of one regular deckhand share. "Count" is how many crew members currently hold that tier.'
-      : 'Starting point from the union agreement\'s mid-range bracket for this gear type — edit roles, shares, and counts to match your own boat\'s contract.'}</p>
-    <table><thead><tr><th>Role / tier</th><th>Shares</th><th>Count</th><th></th></tr></thead><tbody class="crew-body"></tbody></table>`;
+      ? 'Fast samkvæmt samningsþrepum. "Hlutur" er margfeldi af einum hásetahlut. "Fjöldi" er hversu margir skipverjar eru í hverju þrepi.'
+      : 'Upphafsgildi úr kjarasamningnum fyrir þessa veiðigrein — breytu hlut og fjölda til að passa við þína áhöfn.'}</p>
+    <table><thead><tr><th>Þrep</th><th>Hlutur</th><th>Fjöldi</th><th></th></tr></thead><tbody class="crew-body"></tbody></table>`;
   const crewBody = crewSection.querySelector(".crew-body");
   if (!state.config.locked) {
     const addCrewBtn = document.createElement("button");
-    addCrewBtn.textContent = "+ Add share tier";
+    addCrewBtn.textContent = "+ Bæta við þrepi";
     addCrewBtn.className = "secondary";
     addCrewBtn.addEventListener("click", () => {
-      state.crew.push({ id: nextId(), role: "Deckhand", shares: 1, count: 1 });
+      state.crew.push({ id: nextId(), role: "1 hlutur", shares: 1, count: 1 });
       saveCrew(state);
       renderCrew();
     });
@@ -259,7 +259,7 @@ function buildTab(state) {
 
         const actionTd = document.createElement("td");
         const removeBtn = document.createElement("button");
-        removeBtn.textContent = "Remove"; removeBtn.className = "danger";
+        removeBtn.textContent = "Fjarlægja"; removeBtn.className = "danger";
         removeBtn.addEventListener("click", () => {
           state.crew = state.crew.filter(c => c.id !== member.id);
           saveCrew(state);
@@ -276,15 +276,15 @@ function buildTab(state) {
 
   // Split settings
   const settingsSection = document.createElement("section");
-  settingsSection.innerHTML = `<h2>Split Settings</h2>
+  settingsSection.innerHTML = `<h2>Skiptakjör</h2>
     <div class="settings-grid">
-      <label>Crew split percentage ${state.config.locked ? "(locked)" : ""}
+      <label>Skiptaprósenta ${state.config.locked ? "(fast)" : ""}
         <input type="text" class="split-input" inputmode="decimal" ${state.config.locked ? "disabled" : ""}>
         <span class="unit">%</span>
       </label>
     </div>
-    <p class="hint">Fuel/oil is already baked into the split percentage above. Any other deductions below are subtracted from the total catch value before the crew's percentage is applied.</p>
-    <table><thead><tr><th>Deduction</th><th>Amount (ISK)</th><th></th></tr></thead><tbody class="deductions-body"></tbody></table>`;
+    <p class="hint">Olíukostnaður er innifalinn í skiptaprósentunni hér að ofan. Annar frádráttur hér fyrir neðan dregst frá heildarverðmæti aflans áður en skiptaprósentan er reiknuð.</p>
+    <table><thead><tr><th>Frádráttur</th><th>Upphæð (kr.)</th><th></th></tr></thead><tbody class="deductions-body"></tbody></table>`;
   const splitInput = settingsSection.querySelector(".split-input");
   splitInput.value = state.splitPercent;
   splitInput.addEventListener("input", () => { state.splitPercent = parseNum(splitInput.value); saveSplit(state); });
@@ -301,10 +301,10 @@ function buildTab(state) {
     if (b.tripTypes) {
       // Two-dimension selector: trip type x vessel length (longline).
       bracketDiv.innerHTML = `
-        <label>Trip type
+        <label>Tegund veiðiferðar
           <select class="trip-type-select"></select>
         </label>
-        <label>Vessel length
+        <label>Skráningarlengd
           <select class="length-select"></select>
         </label>`;
       settingsSection.insertBefore(bracketDiv, settingsSection.querySelector(".hint"));
@@ -346,7 +346,7 @@ function buildTab(state) {
     } else {
       // Single-dimension selector: one list of vessel categories/lengths (net, trawl).
       bracketDiv.innerHTML = `
-        <label>Vessel category / length
+        <label>Flokkur / skráningarlengd
           <select class="bracket-select"></select>
         </label>`;
       settingsSection.insertBefore(bracketDiv, settingsSection.querySelector(".hint"));
@@ -371,7 +371,7 @@ function buildTab(state) {
 
   const deductionsBody = settingsSection.querySelector(".deductions-body");
   const addDeductionBtn = document.createElement("button");
-  addDeductionBtn.textContent = "+ Add deduction"; addDeductionBtn.className = "secondary";
+  addDeductionBtn.textContent = "+ Bæta við frádrætti"; addDeductionBtn.className = "secondary";
   addDeductionBtn.addEventListener("click", () => {
     state.deductions.push({ id: nextId(), label: "", amount: 0 });
     saveDeductions(state);
@@ -386,7 +386,7 @@ function buildTab(state) {
 
       const labelTd = document.createElement("td");
       const labelInput = document.createElement("input");
-      labelInput.type = "text"; labelInput.value = ded.label; labelInput.placeholder = "e.g. Auction fee";
+      labelInput.type = "text"; labelInput.value = ded.label; labelInput.placeholder = "t.d. uppboðskostnaður";
       labelInput.addEventListener("input", () => { ded.label = labelInput.value; saveDeductions(state); });
       labelTd.appendChild(labelInput);
 
@@ -398,7 +398,7 @@ function buildTab(state) {
 
       const actionTd = document.createElement("td");
       const removeBtn = document.createElement("button");
-      removeBtn.textContent = "Remove"; removeBtn.className = "danger";
+      removeBtn.textContent = "Fjarlægja"; removeBtn.className = "danger";
       removeBtn.addEventListener("click", () => {
         state.deductions = state.deductions.filter(d => d.id !== ded.id);
         saveDeductions(state);
@@ -414,19 +414,19 @@ function buildTab(state) {
 
   // Catch / sale entries
   const catchSection = document.createElement("section");
-  catchSection.innerHTML = `<h2>Catch / Sale Entries</h2>
-    <p class="hint">Species list is fixed — fill in boxes (300 kg each) for whichever species you landed. Weight fills in automatically. Cod, haddock, and saithe are pre-filled with the Verðlagsstofa skiptaverðs reference price for the largest size class; everything else uses the latest public market average (as of 29 Oct 2026). All prices are editable — the liver/roe lines are left blank for you to enter your own agreed price. Use "+ Add other line" only for something not on the list.</p>
-    <table><thead><tr><th>Species / note</th><th>Boxes (&times;300kg)</th><th>Weight (kg)</th><th>Price per kg (ISK)</th><th>Value</th><th></th></tr></thead><tbody class="catch-body"></tbody></table>`;
+  catchSection.innerHTML = `<h2>Aflafærslur</h2>
+    <p class="hint">Tegundalistinn er fastur — fylltu inn fjölda kara (300 kg hvert) fyrir þær tegundir sem veiddust. Þyngd reiknast sjálfkrafa. Þorskur, ýsa og ufsi eru fyrirfram fyllt út með viðmiðunarverði Verðlagsstofu skiptaverðs fyrir stærsta stærðarflokk; annað notar nýjasta opinbera markaðsverð (frá 29. okt. 2026). Öll verð eru breytanleg — lifur og hrogn eru auð svo þú getir sett inn þitt eigið umsamda verð. Notaðu "+ Bæta við línu" aðeins fyrir eitthvað sem er ekki á listanum.</p>
+    <table><thead><tr><th>Tegund / athugasemd</th><th>Kör (&times;300kg)</th><th>Þyngd (kg)</th><th>Verð á kg (kr.)</th><th>Verðmæti</th><th></th></tr></thead><tbody class="catch-body"></tbody></table>`;
   const catchBody = catchSection.querySelector(".catch-body");
 
   const addCatchBtn = document.createElement("button");
-  addCatchBtn.textContent = "+ Add other line"; addCatchBtn.className = "secondary";
+  addCatchBtn.textContent = "+ Bæta við línu"; addCatchBtn.className = "secondary";
   addCatchBtn.addEventListener("click", () => {
     state.catches.push({ id: nextId(), species: "", boxes: 0, pricePerKg: 0, locked: false });
     renderCatches();
   });
   const clearBoxesBtn = document.createElement("button");
-  clearBoxesBtn.textContent = "Clear all boxes"; clearBoxesBtn.className = "secondary";
+  clearBoxesBtn.textContent = "Hreinsa öll kör"; clearBoxesBtn.className = "secondary";
   clearBoxesBtn.addEventListener("click", () => {
     state.catches.forEach(line => { line.boxes = 0; });
     renderCatches();
@@ -444,7 +444,7 @@ function buildTab(state) {
       } else {
         const speciesInput = document.createElement("input");
         speciesInput.type = "text"; speciesInput.value = line.species;
-        speciesInput.placeholder = "e.g. other / company price note";
+        speciesInput.placeholder = "t.d. annað / verð frá eigin fyrirtæki";
         speciesInput.addEventListener("input", () => { line.species = speciesInput.value; });
         speciesTd.appendChild(speciesInput);
       }
@@ -474,7 +474,7 @@ function buildTab(state) {
       const actionTd = document.createElement("td");
       if (!line.locked) {
         const removeBtn = document.createElement("button");
-        removeBtn.textContent = "Remove"; removeBtn.className = "danger";
+        removeBtn.textContent = "Fjarlægja"; removeBtn.className = "danger";
         removeBtn.addEventListener("click", () => {
           state.catches = state.catches.filter(c => c.id !== line.id);
           renderCatches();
@@ -490,12 +490,12 @@ function buildTab(state) {
 
   // Settlement
   const resultSection = document.createElement("section");
-  resultSection.innerHTML = `<h2>Settlement</h2>
-    <button class="calc-btn primary">Calculate settlement</button>
+  resultSection.innerHTML = `<h2>Uppgjör</h2>
+    <button class="calc-btn primary">Reikna uppgjör</button>
     <div class="result-output"></div>
     <div class="save-row hidden">
-      <label>Settlement date <input type="date" class="settlement-date"></label>
-      <button class="save-settlement-btn primary">Save this settlement</button>
+      <label>Uppgjörsdagur <input type="date" class="settlement-date"></label>
+      <button class="save-settlement-btn primary">Vista uppgjör</button>
     </div>`;
   const resultOutput = resultSection.querySelector(".result-output");
   const saveRow = resultSection.querySelector(".save-row");
@@ -526,12 +526,12 @@ function buildTab(state) {
 
   function renderResult(result) {
     const tiles = [
-      ["Total catch value", formatISK(result.totalCatchValue) + " ISK"],
-      ["Deductions", formatISK(result.totalDeductions) + " ISK"],
-      ["Net value", formatISK(result.netValue) + " ISK"],
-      ["Crew pool (" + result.splitPercent + "%)", formatISK(result.pool) + " ISK"],
-      ["Crew headcount", result.totalShares],
-      ["Value per 1 base share", formatISK(result.shareValue) + " ISK"],
+      ["Heildarverðmæti afla", formatISK(result.totalCatchValue) + " kr."],
+      ["Frádráttur", formatISK(result.totalDeductions) + " kr."],
+      ["Nettóverðmæti", formatISK(result.netValue) + " kr."],
+      ["Skiptapottur (" + result.splitPercent + "%)", formatISK(result.pool) + " kr."],
+      ["Fjöldi skipverja", result.totalShares],
+      ["Verðmæti 1 hlutar", formatISK(result.shareValue) + " kr."],
     ];
     let html = '<div class="summary-grid">';
     tiles.forEach(([label, value]) => {
@@ -539,12 +539,12 @@ function buildTab(state) {
     });
     html += '</div>';
 
-    html += '<table><thead><tr><th>Role / tier</th><th>Shares</th><th>Count</th><th>Pay per person (ISK)</th><th>Tier total (ISK)</th></tr></thead><tbody>';
+    html += '<table><thead><tr><th>Þrep</th><th>Hlutur</th><th>Fjöldi</th><th>Greitt á mann (kr.)</th><th>Samtals á þrep (kr.)</th></tr></thead><tbody>';
     result.payouts.forEach(p => {
       html += `<tr><td>${p.role}</td><td>${p.shares}</td><td>${p.count}</td><td>${formatISK(p.payPerPerson)}</td><td>${formatISK(p.payTotal)}</td></tr>`;
     });
     const totalPay = result.payouts.reduce((s, p) => s + p.payTotal, 0);
-    html += `<tr class="payout-row total"><td colspan="4">Total paid out</td><td>${formatISK(totalPay)}</td></tr>`;
+    html += `<tr class="payout-row total"><td colspan="4">Samtals greitt út</td><td>${formatISK(totalPay)}</td></tr>`;
     html += '</tbody></table>';
 
     resultOutput.innerHTML = html;
@@ -557,13 +557,13 @@ function buildTab(state) {
 
   // History
   const historySection = document.createElement("section");
-  historySection.innerHTML = `<h2>Past Settlements</h2><div class="history-list"></div>`;
+  historySection.innerHTML = `<h2>Fyrri uppgjör</h2><div class="history-list"></div>`;
   const historyList = historySection.querySelector(".history-list");
 
   function renderHistory() {
     const settlements = getSettlements(state.tabId).sort((a, b) => b.date.localeCompare(a.date));
     if (settlements.length === 0) {
-      historyList.innerHTML = '<p class="empty-msg">No settlements saved yet.</p>';
+      historyList.innerHTML = '<p class="empty-msg">Engin uppgjör vistuð enn.</p>';
       return;
     }
     historyList.innerHTML = "";
@@ -572,18 +572,18 @@ function buildTab(state) {
       card.className = "history-card";
       const totalPay = s.payouts.reduce((sum, p) => sum + p.payTotal, 0);
       const info = document.createElement("div");
-      info.innerHTML = `<strong>${s.date}</strong><div class="meta">Catch value: ${formatISK(s.totalCatchValue)} ISK &middot; Paid out: ${formatISK(totalPay)} ISK</div>`;
+      info.innerHTML = `<strong>${s.date}</strong><div class="meta">Verðmæti afla: ${formatISK(s.totalCatchValue)} kr. &middot; Greitt út: ${formatISK(totalPay)} kr.</div>`;
 
       const actions = document.createElement("div");
       actions.className = "actions";
       const viewBtn = document.createElement("button");
-      viewBtn.textContent = "View"; viewBtn.className = "secondary";
+      viewBtn.textContent = "Skoða"; viewBtn.className = "secondary";
       viewBtn.addEventListener("click", () => {
         renderResult(s);
         resultSection.scrollIntoView({ behavior: "smooth" });
       });
       const delBtn = document.createElement("button");
-      delBtn.textContent = "Delete"; delBtn.className = "danger";
+      delBtn.textContent = "Eyða"; delBtn.className = "danger";
       delBtn.addEventListener("click", () => {
         saveSettlements(state.tabId, getSettlements(state.tabId).filter(x => x.id !== s.id));
         renderHistory();

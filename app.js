@@ -47,9 +47,14 @@ const DEFAULT_SPECIES = [
   "Blönduð hrogn",
 ];
 
-// One-time snapshot of public market average prices (ISK/kg), pulled 2026-10-29 from mbl.is/200milur.
-// Þorskur, Ýsa, Ufsi and the liver/roe lines are left blank on purpose - those are priced manually.
+// One-time snapshot of prices (ISK/kg), pulled 2026-10-29.
+// Þorskur, Ýsa, Ufsi use Verðlagsstofa skiptaverðs reference prices (slægt, largest size class):
+// Þorskur 6kg, Ýsa 2.5kg, Ufsi 3.5kg og stærra. Everything else is the mbl.is/200milur market average.
+// Liver/roe lines are left blank on purpose - those are priced manually.
 const PRICE_SNAPSHOT = {
+  "Þorskur": 567.73,
+  "Ýsa": 397.86,
+  "Ufsi": 313.55,
   "Undirmálsþorskur": 517.22,
   "Undirmálsýsa": 142.00,
   "Lýsa": 167.34,

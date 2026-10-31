@@ -10,37 +10,42 @@ const DEFAULT_SPECIES = [
   "Þorskalifur", "Blönduð lifur", "Þorskhrogn", "Blönduð hrogn",
 ];
 
-// One-time price snapshot (ISK/kg), pulled 2026-10-29.
+// One-time price snapshot (ISK/kg), pulled 2026-10-30.
 // Þorskur, Ýsa, Ufsi use Verðlagsstofa skiptaverðs reference prices (slægt, largest size class):
-// Þorskur 6kg, Ýsa 2.5kg, Ufsi 3.5kg og stærra. Everything else is the mbl.is/200milur market average.
-// Liver/roe lines are left blank on purpose - those are priced manually.
+// Þorskur 6kg, Ýsa 2.5kg, Ufsi 3.5kg og stærra. Everything else is the rsf.is last-auction
+// average (slægt where sold that way, else óslægt). Stóra brosma, Stórkjafta, Náskata and
+// Tindaskata didn't trade in that auction, so they're left on their prior values.
+// Liver prices are this boat's agreed numbers (300/70 ISK/kg, cod/mixed). Roe lines are
+// left blank on purpose - those are priced manually.
 const PRICE_SNAPSHOT = {
   "Þorskur": 567.73,
   "Ýsa": 397.86,
   "Ufsi": 313.55,
-  "Undirmálsþorskur": 517.22,
-  "Undirmálsýsa": 142.00,
-  "Lýsa": 167.34,
-  "Langa": 463.93,
-  "Blálanga": 410.64,
-  "Keila": 258.72,
+  "Undirmálsþorskur": 521.45,
+  "Undirmálsýsa": 216.12,
+  "Lýsa": 118.63,
+  "Langa": 477.23,
+  "Blálanga": 434.35,
+  "Keila": 290.53,
   "Stóra brosma": 221.00,
-  "Gullkarfi": 445.33,
-  "Steinbítur": 612.99,
-  "Hlýri": 592.60,
-  "Grálúða": 651.61,
-  "Skarkoli": 572.93,
-  "Sandkoli": 68.97,
-  "Skrápflúra": 10.00,
+  "Gullkarfi": 385.41,
+  "Steinbítur": 648.91,
+  "Hlýri": 568.03,
+  "Grálúða": 765.06,
+  "Skarkoli": 502.27,
+  "Sandkoli": 52.00,
+  "Skrápflúra": 2.61,
   "Stórkjafta": 350.00,
-  "Langlúra": 240.00,
-  "Þykkvalúra": 918.60,
-  "Skötuselur": 470.86,
-  "Lúða": 569.47,
-  "Grásleppa": 10.00,
-  "Skata": 67.08,
+  "Langlúra": 181.00,
+  "Þykkvalúra": 882.43,
+  "Skötuselur": 543.23,
+  "Lúða": 593.52,
+  "Grásleppa": 0.00,
+  "Skata": 27.00,
   "Náskata": 50.00,
   "Tindaskata": 37.39,
+  "Þorskalifur": 300.00,
+  "Blönduð lifur": 70.00,
 };
 
 // ---------- Per gear-type tab configuration ----------
@@ -375,7 +380,7 @@ function buildTab(state) {
   // Catch / sale entries
   const catchSection = document.createElement("section");
   catchSection.innerHTML = `<h2>Aflafærslur</h2>
-    <p class="hint">Tegundalistinn er fastur — fylltu inn fjölda kara (300 kg hvert) fyrir þær tegundir sem veiddust. Þyngd reiknast sjálfkrafa. Þorskur, ýsa og ufsi eru fyrirfram fyllt út með viðmiðunarverði Verðlagsstofu skiptaverðs fyrir stærsta stærðarflokk; annað notar nýjasta opinbera markaðsverð (frá 29. okt. 2026). Öll verð eru breytanleg — lifur og hrogn eru auð svo þú getir sett inn þitt eigið umsamda verð. Notaðu "+ Bæta við línu" aðeins fyrir eitthvað sem er ekki á listanum.</p>
+    <p class="hint">Tegundalistinn er fastur — fylltu inn fjölda kara (300 kg hvert) fyrir þær tegundir sem veiddust. Þyngd reiknast sjálfkrafa. Þorskur, ýsa og ufsi eru fyrirfram fyllt út með viðmiðunarverði Verðlagsstofu skiptaverðs fyrir stærsta stærðarflokk; annað notar nýjasta opinbera markaðsverð (frá 30. okt. 2026). Öll verð eru breytanleg — lifur og hrogn eru auð svo þú getir sett inn þitt eigið umsamda verð. Notaðu "+ Bæta við línu" aðeins fyrir eitthvað sem er ekki á listanum.</p>
     <table><thead><tr><th>Tegund / athugasemd</th><th>Kör (&times;300kg)</th><th>Þyngd (kg)</th><th>Verð á kg (kr.)</th><th>Verðmæti</th><th></th></tr></thead><tbody class="catch-body"></tbody></table>`;
   const catchBody = catchSection.querySelector(".catch-body");
 

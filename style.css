@@ -29,6 +29,20 @@ header {
 header h1 { margin: 0 0 4px 0; font-size: 1.6rem; }
 .subtitle { margin: 0; opacity: 0.85; font-size: 0.95rem; }
 
+.install-btn {
+  margin-top: 14px;
+  background: rgba(255, 255, 255, 0.15);
+  color: white;
+  border: 1px solid rgba(255, 255, 255, 0.4);
+  padding: 8px 16px;
+  border-radius: 6px;
+  font-size: 0.85rem;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.install-btn:hover { background: rgba(255, 255, 255, 0.25); }
+
 main {
   max-width: 900px;
   margin: 0 auto;

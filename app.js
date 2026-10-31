@@ -599,3 +599,41 @@ function initTabs() {
 }
 
 initTabs();
+
+// ---------- Install-to-home-screen button ----------
+(function initInstallButton() {
+  const btn = document.getElementById("install-btn");
+  if (!btn) return;
+
+  const alreadyInstalled =
+    window.matchMedia("(display-mode: standalone)").matches || window.navigator.standalone === true;
+  if (alreadyInstalled) return;
+
+  const isIOS = /iphone|ipad|ipod/i.test(navigator.userAgent);
+  let deferredPrompt = null;
+
+  // Chrome/Edge on Android and desktop fire this when the app is installable.
+  window.addEventListener("beforeinstallprompt", (e) => {
+    e.preventDefault();
+    deferredPrompt = e;
+    btn.classList.remove("hidden");
+  });
+
+  // iOS has no install prompt API - show the button with manual instructions instead.
+  if (isIOS) btn.classList.remove("hidden");
+
+  btn.addEventListener("click", async () => {
+    if (deferredPrompt) {
+      deferredPrompt.prompt();
+      const choice = await deferredPrompt.userChoice;
+      if (choice.outcome === "accepted") btn.classList.add("hidden");
+      deferredPrompt = null;
+      return;
+    }
+    if (isIOS) {
+      alert('Á iPhone: ýttu á "Deila" takkann (ferningur með ör upp úr) og veldu "Setja á upphafsskjá".');
+    }
+  });
+
+  window.addEventListener("appinstalled", () => btn.classList.add("hidden"));
+})();
